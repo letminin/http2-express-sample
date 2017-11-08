@@ -11,5 +11,10 @@
     "url": "http://gitlab.hroot.info/kickstarter/http2-express-sample.git"
   },
   "author": "kickstarter",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.16.2",
+    "mz": "^2.7.0",
+    "spdy": "^3.4.7"
+  }
 }
