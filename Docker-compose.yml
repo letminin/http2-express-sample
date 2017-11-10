@@ -1,9 +1,13 @@
 version: "2"
 services:
   web:
-    build: .
+    image: node:carbon
+    working_dir: /app
+    environment:
+      DEBUG: "*"
+    command: node index.js --colors
     volumes:
-      - ./:/app
+      - "${PWD}:/app:delegated"
     ports:
       - "8000:8000"
       - "8080:8080"

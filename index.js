@@ -72,14 +72,14 @@ app.get('/', (req, res) => {
  *   - Hpack compression
  *   - Stream process
  *   - Frame building
- *   - Priorize process
+ *   - Priorize stream
  *
  * Usage :
  *      DEBUG=* node index.js
  *
  */
 app.get('/debug', (req, res) => {
-    res.status(200).send(process.env.toString())
+    res.status(200).send('Keep alive')
 })
 
 /**
