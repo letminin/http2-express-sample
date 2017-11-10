@@ -66,9 +66,24 @@ app.get('/', (req, res) => {
 })
 
 /**
- *  GET  /me return user information
- *  GET  /products return user product
+ * simple route for debug usage
+ * Goal is to spy on different spdy module
+ *   - Callstack
+ *   - Hpack compression
+ *   - Stream process
+ *   - Frame building
+ *   - Priorize process
  *
+ * Usage :
+ *      DEBUG=* node index.js
+ *
+ */
+app.get('/debug', (req, res) => {
+    res.status(200).send(process.env.toString())
+})
+
+/**
+ * Simple get routes
  */
 app.get('/me', (req, res) => {
     const data = {
