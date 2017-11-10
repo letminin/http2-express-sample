@@ -12,3 +12,12 @@ services:
     ports:
       - "8000:8000"
       - "8080:8080"
+
+  nginx:
+    image: nginx:stable-alpine
+    container_name: nginx
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d
+    ports:
+      - "80:80"
+      - "443:443"

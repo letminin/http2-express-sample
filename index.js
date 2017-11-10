@@ -29,7 +29,7 @@ const assets = [
 app.use(express.static('public'))
 
 /**
- *   Test push features
+ *   Test push feature
  *   Send assets before sending anything else
  *   speed-up load page
  */
@@ -67,12 +67,11 @@ app.get('/', (req, res) => {
 
 /**
  * simple route for debug usage
- * Goal is to spy on different spdy module
- *   - Callstack
- *   - Hpack compression
- *   - Stream process
- *   - Frame building
- *   - Priorize stream
+ * Goal is to spy spdy module
+ *   - Server   spdy:connection:server (connection setup)
+ *   - Stream   spdy:stream:server
+ *   - Frame    spdy:framer
+ *   - Priorize spdy:priority
  *
  * Usage :
  *      DEBUG=* node index.js
@@ -114,8 +113,24 @@ app.listen(HTTP_PORT, err => {
 
 //start http/2 server, map req to spdy with express
 spdy.createServer({
-    key:  fs.readFileSync('./server.key'),
-    cert: fs.readFileSync('./server.crt')
+    key:  fs.readFileSync('./cert/server.key'),
+    cert: fs.readFileSync('./cert/server.crt'),
+    // optional settings spdyd
+    spdy: {
+        protocols: ['h2', 'spdy/3.1', 'http/1.1'],
+        plain: false,
+
+        // NOTE: Use with care! This should not be used without some proxy that
+        // will *always* send X_FORWARDED_FOR
+        'x-forwarded-for': true,
+
+        connection: {
+            windowSize: 1024 * 1024,
+
+            // **optional** if true - server will send 3.1 frames on 3.0 *plain* spdy
+            autoSpdy31: false
+        }
+    }
 }, app)
     .listen(HTTPS_PORT, err => {
         if (err) throw err
