@@ -119,5 +119,5 @@ spdy.createServer({
 }, app)
     .listen(HTTPS_PORT, err => {
         if (err) throw err
-        console.log(`Server http/2 started on port ${HTTPS_PORT}`)
+        console.log(`Server http/2 TLS started on port ${HTTPS_PORT}`)
     })
