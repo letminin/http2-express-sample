@@ -1,5 +1,5 @@
 
-const API_BASE_URL = 'https://localhost:8000'
+const API_BASE_URL = window.location.href
 console.log('Testing http2 protocol yihaaaa !', 'XHR call')
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -8,15 +8,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const meContainer = document.getElementById('data')
     const productContainer = document.getElementById('product')
 
-    axios.get(`${API_BASE_URL}/me`)
+
+    axios.get(`${API_BASE_URL}me`)
         .then(info => {
             const textNode = document.createTextNode(JSON.stringify(info.data));
             meContainer.appendChild(textNode)
         })
 
-    axios.get(`${API_BASE_URL}/product`)
+    axios.get(`${API_BASE_URL}product`)
         .then(info => {
             const textNode = document.createTextNode(JSON.stringify(info.data))
             productContainer.appendChild(textNode)
         })
+
 }, false)

@@ -16,8 +16,11 @@ const args = yargs.usage('Usage: $0 <command> [options]')
     .help()
     .argv
 
-const HTTP2 = 'http/2'
-const PORT = 8000
+const HTTPS_PORT = 8000
+const HTTP_PORT = 8080
+
+const indexRootPromise =  fs.readFile('public/index.html')
+
 //define assets for push feature
 const assets = [
     { path: 'public/assets/js/misc.js',    res: {'content-type': 'application/javascript'}},
@@ -30,44 +33,37 @@ app.use(express.static('public'))
  *   Send assets before sending anything else
  *   speed-up load page
  */
-if (args.protocol === HTTP2) {
-    app.get('/', (req, res) => {
+app.get('/', (req, res) => {
+    //ensure Push feature is up
+    if (req.push) {
         Promise.all(assets.map(asset => fs.readFile(asset)))
             .then(files => {
-                //ensure Push feature is up
-                if (req.push) {
-                    //send assets
-                    files.forEach(file => {
-                        //setup stream push
-                        const stream = res.push(file.path, {req: {'accept': '**/*'}, res: file.res})
+                //send assets
+                files.forEach(file => {
+                    //setup stream push
+                    const stream = res.push(file.path, {req: {'accept': '**/*'}, res: file.res})
 
-                        //catch err
-                        stream.on('error', err => {
-                            console.log(err);
-                        })
-
-                        //ending stream here
-                        stream.end(file);
+                    //catch err
+                    stream.on('error', err => {
+                        console.log(err);
                     })
 
-                    //send then index when all deps are resolved
-                    fs.readFile('public/index.html')
-                        .then(indexFile => {
-                            res.end(indexFile)
-                        }).catch(err => res.status(500).send(err.toString()))
-                }
+                    //ending stream here
+                    stream.end(file);
+                })
 
+                //send then index when all deps are resolved
+                indexRootPromise.then(indexFile => {
+                    res.end(indexFile)
+                }).catch(err => res.status(500).send(err.toString()))
             })
             .catch(err => res.status(500).send(err.toString()))
-    })
-} else {
-    app.get('/', (req, res) => {
-        fs.readFile('public/index.html')
-            .then(indexFile => {
-                res.status(200).send(indexFile)
-            })
-    })
-}
+        } else {
+            //backward http/1.1
+            indexRootPromise.then(indexFile => res.send.bind(res))
+                .catch(err => res.status(500).send(err.toString()))
+        }
+})
 
 /**
  *  GET  /me return user information
@@ -95,20 +91,18 @@ app.get('/product', (req, res) => {
     res.status(200).send(data)
 })
 
-if (args.protocol === HTTP2) {
-    spdy.createServer({
-        key: fs.readFileSync('./server.key'),
-        cert: fs.readFileSync('./server.crt')
-    }, app)
-        .listen(PORT, err => {
-            if (err) throw err
-            console.log(`Server http/2 started on port 8080`)
-        })
+//start standard express server legacy
+app.listen(HTTP_PORT, err => {
+    if (err) throw err
+    console.log(`Server http/1.1 started on port ${HTTP_PORT}`)
+})
 
-} else {
-    //start standard express server
-    app.listen(PORT, err => {
+//start http/2 server, map req to spdy with express
+spdy.createServer({
+    key:  fs.readFileSync('./server.key'),
+    cert: fs.readFileSync('./server.crt')
+}, app)
+    .listen(HTTPS_PORT, err => {
         if (err) throw err
-        console.log(`Server http/1.1 started on port 8080`)
+        console.log(`Server http/2 started on port ${HTTPS_PORT}`)
     })
-}
