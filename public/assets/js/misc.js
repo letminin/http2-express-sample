@@ -1,6 +1,6 @@
 
 const API_BASE_URL = window.location.href
-console.log('Testing http2 protocol yihaaaa !', 'XHR call')
+console.log('Asset added, push feature present !', 'XHR call')
 
 document.addEventListener('DOMContentLoaded', () => {
     console.log('on load called')

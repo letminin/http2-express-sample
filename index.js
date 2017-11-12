@@ -1,73 +1,74 @@
 /**
  * Proof of concept
- * Http2 using speedy module support http1.1, http2, spdy
+ * Http2 using speedy module (support protocol [http/1.1, http/2, spdy/3.1])
  *
  */
-const spdy = require('spdy')
+const spdyd = require('spdy')
 const express = require('express')
 const fs = require('mz/fs')
-const yargs = require('yargs')
-
+const path = require('path')
 const app = express()
-
-const args = yargs.usage('Usage: $0 <command> [options]')
-    .describe('protocol', 'Choose which protocol to use [http/1.1, http/2]')
-    .alias('p', 'protocol')
-    .help()
-    .argv
+const url = require('url')
+const logger = require('morgan')
 
 const HTTPS_PORT = 8000
 const HTTP_PORT = 8080
-
-const indexRootPromise =  fs.readFile('public/index.html')
+const index =  fs.readFileSync('push/index.html')
+const headers = {
+ //'content-type': 'application/javascript'
+}
 
 //define assets for push feature
-const assets = [
-    { path: 'public/assets/js/misc.js',    res: {'content-type': 'application/javascript'}},
-    { path: 'public/assets/js/sample.js',  res: {'content-type': 'application/javascript'}}
-]
+const assets = ['/misc.js','/sample.js', '/node-university-animation.gif']
+    .map(assetPath =>
+        Object.assign({ headers, assetPath, data: fs.readFileSync(path.join(__dirname, 'push', assetPath))}))
+
+console.log('ASSETS TO PUSH', assets)
+
+app.use(logger('dev'))
+
+//uncomment for default middleware
 app.use(express.static('public'))
 
 /**
+ *   Static server entry point
  *   Test push feature
  *   Send assets before sending anything else
- *   speed-up load page
+ *   Speed-up load page
+ *
+ *   If no push feature is detected
  */
-app.get('/', (req, res) => {
-    //ensure Push feature is up
+app.use((req, res, next) => {
+    let ressource = url.parse(req.url).pathname.substr(1)
+    //ensure push feature is up
     if (req.push) {
-        Promise.all(assets.map(asset => fs.readFile(asset)))
-            .then(files => {
-                //send assets
-                files.forEach(file => {
-                    //setup stream push
-                    const stream = res.push(file.path, {req: {'accept': '**/*'}, res: file.res})
-
-                    //catch err
-                    stream.on('error', err => {
-                        console.log(err);
-                    })
-
-                    //ending stream here
-                    stream.end(file);
-                })
-
-                //send then index when all deps are resolved
-                indexRootPromise.then(indexFile => {
-                    res.end(indexFile)
-                }).catch(err => res.status(500).send(err.toString()))
+        if (ressource === '' || ressource === '/') {
+            //send assets
+            assets.forEach(asset => {
+                console.log("push", asset.assetPath)
+                //setup stream push
+                try {
+                    res.push(asset.assetPath, {req: {'accept': '**/*'}, res: asset.headers}).end(asset.data)
+                } catch (e) {
+                    console.log(e)
+                }
             })
-            .catch(err => res.status(500).send(err.toString()))
+            //simulate latency
+            res.end(index)
         } else {
-            //backward http/1.1
-            indexRootPromise.then(indexFile => res.send.bind(res))
-                .catch(err => res.status(500).send(err.toString()))
+            const file = assets.filter(asset => asset.assetPath.includes(ressource))
+            if (!file.length) return next()
+            res.write(file[0].data)
+            res.end()
         }
+    }  else {
+        //backward http/1.1
+        res.send(index)
+    }
 })
 
 /**
  * simple route for debug usage
- * Goal is to spy spdy module
  *   - Server   spdy:connection:server (connection setup)
  *   - Stream   spdy:stream:server
  *   - Frame    spdy:framer
@@ -111,11 +112,15 @@ app.listen(HTTP_PORT, err => {
     console.log(`Server http/1.1 started on port ${HTTP_PORT}`)
 })
 
-//start http/2 server, map req to spdy with express
-spdy.createServer({
+/**
+ *   Start http/2 server
+ *   spdy.createServer will overidde req & res
+ *
+ */
+spdyd.createServer({
     key:  fs.readFileSync('./cert/server.key'),
     cert: fs.readFileSync('./cert/server.crt'),
-    // optional settings spdyd
+    // optional settings spdy
     spdy: {
         protocols: ['h2', 'spdy/3.1', 'http/1.1'],
         plain: false,
