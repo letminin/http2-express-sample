@@ -14,22 +14,19 @@ const logger = require('morgan')
 const HTTPS_PORT = 8000
 const HTTP_PORT = 8080
 const index =  fs.readFileSync('push/index.html')
-const headers = {
- //'content-type': 'application/javascript'
-}
 
 //define assets for push feature
 const assets = ['/misc.js','/sample.js', '/node-university-animation.gif']
     .map(assetPath =>
-        Object.assign({ headers, assetPath, data: fs.readFileSync(path.join(__dirname, 'push', assetPath))}))
+        Object.assign({ headers:{}, assetPath, data: fs.readFileSync(path.join(__dirname, 'push', assetPath))}))
 
 console.log('ASSETS TO PUSH', assets)
 
 app.use(logger('dev'))
 
-//uncomment for default middleware
-app.use(express.static('public'))
-
+//uncomment to use push middleware
+//app.use(express.static('public'))
+const sleep = (ms) =>  new Promise((resolve) => ms === 0 ? resolve() : setTimeout(resolve, ms))
 /**
  * Middleware push http/2
  */
@@ -47,7 +44,8 @@ app.use((req, res, next) => {
                 }
             })
             //simulate latency
-            res.end(index)
+            sleep(0)
+                .then(()=> res.end(index))
         } else {
             const file = assets.filter(asset => asset.assetPath.includes(ressource))
             if (!file.length) return next()
@@ -104,7 +102,15 @@ app.listen(HTTP_PORT, err => {
     if (err) throw err
     console.log(`Server http/1.1 started on port ${HTTP_PORT}`)
 })
-
+const otherApp = express()
+const https = require('https')
+const server = https.createServer({
+    key:  fs.readFileSync('./cert/server.key'),
+    cert: fs.readFileSync('./cert/server.crt'),
+}, otherApp)
+/*server.listen(8001, ()=> {
+    console.log('Server https/1.1 started on port', 8001)
+})*/
 /**
  *   Start http/2 server
  *   spdy.createServer will overidde req & res
@@ -132,5 +138,5 @@ spdyd.createServer({
 }, app)
     .listen(HTTPS_PORT, err => {
         if (err) throw err
-        console.log(`Server http/2 TLS started on port ${HTTPS_PORT}`)
+        console.log(`Server https/2 TLS started on port ${HTTPS_PORT}`)
     })
