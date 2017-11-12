@@ -31,22 +31,15 @@ app.use(logger('dev'))
 app.use(express.static('public'))
 
 /**
- *   Static server entry point
- *   Test push feature
- *   Send assets before sending anything else
- *   Speed-up load page
- *
- *   If no push feature is detected
+ * Middleware push http/2
  */
 app.use((req, res, next) => {
     let ressource = url.parse(req.url).pathname.substr(1)
     //ensure push feature is up
     if (req.push) {
         if (ressource === '' || ressource === '/') {
-            //send assets
             assets.forEach(asset => {
                 console.log("push", asset.assetPath)
-                //setup stream push
                 try {
                     res.push(asset.assetPath, {req: {'accept': '**/*'}, res: asset.headers}).end(asset.data)
                 } catch (e) {
