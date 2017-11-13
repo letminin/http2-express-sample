@@ -4,20 +4,35 @@ services:
     image: node:carbon
     tty: true
     working_dir: /app
-    command: node index.js --colors
+    environment:
+      - 'DEBUG=spdy*'
+    command: node multiplexing.js --colors
     volumes:
       - "${PWD}:/app:delegated"
     ports:
-      - "8000:8000"
-      - "8080:8080"
-    links:
-      - nginx:nginx-proxy
+      - "3011:3011"
+      - "3010:3010"
+
+  push:
+      image: node:carbon
+      tty: true
+      working_dir: /app
+      command: node push
+      volumes_from:
+        - web
+      ports:
+        - "8000:8000"
+        - "8080:8080"
 
   nginx:
     image: nginx:latest
     container_name: nginx-proxy
     volumes:
       - ./nginx/conf.d:/etc/nginx/conf.d
+    volumes_from:
+      - web
     ports:
       - "80:80"
       - "443:443"
+    depends_on:
+      - web

@@ -5,7 +5,10 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node index.js"
+    "start": "node index.js",
+    "all": "node push.js & node multiplexing.js",
+    "push-server": "node push.js",
+    "multiplexing-server": "node multiplexing.js"
   },
   "repository": {
     "type": "git",
