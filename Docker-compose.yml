@@ -4,8 +4,6 @@ services:
     image: node:carbon
     tty: true
     working_dir: /app
-    environment:
-      - 'DEBUG=spdy*'
     command: node multiplexing.js --colors
     volumes:
       - "${PWD}:/app:delegated"
@@ -18,6 +16,8 @@ services:
       tty: true
       working_dir: /app
       command: node push
+      environment:
+        - 'DEBUG=*'
       volumes_from:
         - web
       ports:

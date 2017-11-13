@@ -1,21 +1,20 @@
-const url = new URL(window.location.href)
-const PROXY_LOCATION = 'api'
-const REVERSE_PROXY_ENABLED = true
-const API_BASE_URL = URL.origin
-const API_URL = REVERSE_PROXY_ENABLED ? `${url.protocol}/${url.hostname}/${PROXY_LOCATION}` : API_BASE_URL
 
-console.log('API URL TO USE', API_URL)
+const API_BASE_URL = window.location.href
+console.log('Asset added push feature !')
+
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('on load called')
+
     const meContainer = document.getElementById('data')
     const productContainer = document.getElementById('product')
 
-    axios.get(`${PROXY_LOCATION}/me`)
+    axios.get(`${API_BASE_URL}me`)
         .then(info => {
             const textNode = document.createTextNode(JSON.stringify(info.data));
             meContainer.appendChild(textNode)
         })
 
-    axios.get(`${PROXY_LOCATION}/product`)
+    axios.get(`${API_BASE_URL}product`)
         .then(info => {
             const textNode = document.createTextNode(JSON.stringify(info.data))
             productContainer.appendChild(textNode)
