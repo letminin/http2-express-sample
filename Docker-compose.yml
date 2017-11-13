@@ -4,7 +4,7 @@ services:
     image: node:carbon
     tty: true
     working_dir: /app
-    command: node multiplexing.js --colors
+    command: node api
     volumes:
       - "${PWD}:/app:delegated"
     ports:

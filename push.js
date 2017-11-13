@@ -41,11 +41,10 @@ app.use((req, res, next) => {
                     console.log(e)
                 }
             })
-            //simulate latency
             sleep(0)
                 .then(()=> res.end(index))
         } else {
-            const file = assets.filter(asset => asset.assetPath.includes(ressource))
+            const file = assets.find(asset => asset.assetPath.includes(ressource))
             if (!file.length) return next()
             res.write(file[0].data)
             res.end()
@@ -57,15 +56,7 @@ app.use((req, res, next) => {
 })
 
 /**
- * simple route for debug usage
- *   - Server   spdy:connection:server (connection setup)
- *   - Stream   spdy:stream:server
- *   - Frame    spdy:framer
- *   - Priorize spdy:priority
- *
- * Usage :
- *      DEBUG=* node index.js
- *
+ * simple route for debug usage (analyze spdy module debug mode)
  */
 app.get('/debug', (req, res) =>  res.status(200).send('Keep alive'))
 

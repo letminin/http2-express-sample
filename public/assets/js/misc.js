@@ -4,7 +4,6 @@ const REVERSE_PROXY_ENABLED = true
 const API_BASE_URL = URL.origin
 const API_URL = REVERSE_PROXY_ENABLED ? `${url.protocol}/${url.hostname}/${PROXY_LOCATION}` : API_BASE_URL
 
-console.log('API URL TO USE', API_URL)
 document.addEventListener('DOMContentLoaded', () => {
     const meContainer = document.getElementById('data')
     const productContainer = document.getElementById('product')
