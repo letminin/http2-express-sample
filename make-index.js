@@ -6,10 +6,11 @@ const X_TILES_MAX = 31
 const Y_TILES_MAX = 31
 
 const dest = 'index.html'
+const imgPath = '/assets/images/landscape [www.imagesplitter.net]'
 let data = `<html><body onload='showtimes()'>`
 for (let y = 0; y<= Y_TILES_MAX; y++) {
     for (let x = 0; x <= X_TILES_MAX; x++) {
-        data += `<img src='/assets/images/landscape [www.imagesplitter.net]-${y}-${x}.jpeg '></img>`
+        data += `<img src='${imgPath}-${y}-${x}.jpeg '></img>`
     }
     data+= '<br/>'
 }

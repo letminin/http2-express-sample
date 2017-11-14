@@ -10,11 +10,11 @@ const HTTP_PORT = 3010
 //helper latency
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, parseInt(ms)))
 
+//simulate latency with query param
 app.use((req, res, next) => req.query.latency ? sleep(req.query.latency).then(()=> {next()}) : next())
 
 app.use(logger('dev'))
 
-//default middleware, will by default use h2
 app.use(express.static('public'))
 
 //debug usage for inspect spdy module

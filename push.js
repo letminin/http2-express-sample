@@ -24,7 +24,7 @@ console.log('Assets to push', assets)
 const sleep = (ms) =>  new Promise((resolve) => ms === 0 ? resolve() : setTimeout(resolve, ms))
 
 /**
- * Middleware push http/2
+ * quick middleware push http/2
  */
 app.use((req, res, next) => {
     let ressource = url.parse(req.url).pathname.substr(1)
@@ -108,7 +108,7 @@ spdyd.createServer({
         'x-forwarded-for': true,
 
         connection: {
-            windowSize: 1024 * 1024,
+            windowSize: 1024 * 1024, // 1,048 MB, change congestion window if bandwith >
 
             // **optional** if true - server will send 3.1 frames on 3.0 *plain* spdy
             autoSpdy31: false
